@@ -19,42 +19,44 @@ To Do:
 #include <Esplora.h>
 #include <TFT.h>
 #include <SPI.h>
+
 bool waiting = false;
 bool gameover = true;
+bool gameEnd = true;
 int randVal = 0;
 float Score = 0;
+float oldScore = 0;
 int bgR = 250;
 int bgG = 16;
 int bgB = 200;
-float multiplier = 1;
+float multiplier = 0.9;
 char command[10];
-String myString;
-
+char outstr[10];
 void correct()
 {
   EsploraTFT.text("GOOD!", 10, 30);
   delay(1000);
   EsploraTFT.stroke(bgR, bgG, bgB);
   EsploraTFT.text("GOOD!", 10, 30);
+  multiplier += 0.1f;
+  Score += 1.0f*multiplier;
+  EsploraTFT.fill(255, 255, 255);
+  EsploraTFT.rect(45, 77, 80, 20);
+  EsploraTFT.stroke(0, 0, 0);
+  dtostrf(Score, 7, 3, outstr);
+  EsploraTFT.text(outstr, 35 , 80);
   waiting = true;
 }
+
 void action(char* instruction)
 {
-  EsploraTFT.text(instruction, 5 , 0);
+  EsploraTFT.text(instruction, 10 , 20);
   delay(1000);
   EsploraTFT.stroke(bgR, bgG, bgB);
-  EsploraTFT.text(instruction, 5 , 0);
+  EsploraTFT.text(instruction, 10 , 20);
   EsploraTFT.stroke(255, 255, 255);
 }
 
-void setup() 
-{
-  EsploraTFT.begin();
-  EsploraTFT.stroke(255, 255, 255);
-  EsploraTFT.setTextSize(2);
-  EsploraTFT.background(bgR, bgG, bgB);
-  //Serial.begin(9600); /*Uncomment for Debug*/
-}
 void textPressed(char* text, int x, int y)
 {
   EsploraTFT.stroke(0, 0, 0);
@@ -63,9 +65,48 @@ void textPressed(char* text, int x, int y)
   EsploraTFT.stroke(bgR, bgG, bgB);
   EsploraTFT.text(text, x , y);
 }
+void gameoverRoutine()
+{
+    EsploraTFT.stroke(255, 255, 255);
+    EsploraTFT.text("AGAIN?", 35 , 30);
+    if(gameEnd)
+    {
+      EsploraTFT.fill(255, 255, 255);
+      EsploraTFT.rect(50, 77, 80, 20);
+      EsploraTFT.stroke(0, 0, 0);
+      dtostrf(Score, 7, 3, outstr);
+      EsploraTFT.text(outstr, 35 , 80);
+      gameEnd = false;
+    }
+    if(Esplora.readButton(SWITCH_DOWN) == LOW)
+    {
+      textPressed("AGAIN?", 35, 30);
+      EsploraTFT.stroke(bgR, bgG, bgB);
+      EsploraTFT.text("GAME OVER!", 25 , 60);
+      EsploraTFT.stroke(0, 0, 0);
+      dtostrf(Score, 7, 3, outstr);
+      EsploraTFT.text(outstr, 35 , 80);
+      Score = 0;
+      multiplier = 0.9;
+      EsploraTFT.stroke(255, 255, 255);
+      gameover = false;
+      waiting = true;
+    }
+}
+void setup() 
+{
+  EsploraTFT.begin();
+  EsploraTFT.background(255, 255, 255);
+  EsploraTFT.fill(bgR, bgG, bgB);
+  EsploraTFT.rect(5, 5, EsploraTFT.width()-10, EsploraTFT.height()-10);
+  EsploraTFT.stroke(255, 255, 255);
+  EsploraTFT.setTextSize(2); //20 pixels
+  //Serial.begin(9600); /*Uncomment for Debug*/
+}
+
 void loop()
 {
-  randVal = random(11);
+  randVal = random(12);
   if(waiting)
   {
     waiting = false;
@@ -205,31 +246,20 @@ void loop()
           gameover = true;
         }
       }break;
-      
+      case 11 :
+      {
+        action("Shake");
+        if(abs(Esplora.readAccelerometer(X_AXIS)) > 200 || abs(Esplora.readAccelerometer(Y_AXIS)) > 200)
+        {
+          correct();
+        }
+      }
     }
     EsploraTFT.stroke(255, 255, 255);
   }
   if(gameover)
   {
-    EsploraTFT.stroke(255, 255, 255);
-    EsploraTFT.text("AGAIN?", 35 , 30);
-    if(Esplora.readButton(SWITCH_DOWN) == LOW)
-    {
-      textPressed("AGAIN?", 35, 30);
-      EsploraTFT.stroke(bgR, bgG, bgB);
-      EsploraTFT.text("GAME OVER!", 25 , 60);
-      EsploraTFT.stroke(255, 255, 255);
-      gameover = false;
-      waiting = true;
-      
-    }
-    
+    gameoverRoutine();
   }
-  // multiplier += 0.1;
-  // EsploraTFT.stroke(250, 16, 200);
-  // EsploraTFT.text(oldScore, 35 , 30);
-  // EsploraTFT.stroke(255, 255, 255);
-  // EsploraTFT.text(Score, 35 , 30);
-  // oldScore = Score;
 }
 
