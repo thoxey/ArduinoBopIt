@@ -11,49 +11,56 @@ of commands to execute before the time runs out.
 To Do:
 -Display Scores, Save High score, for current session.
 -Add a random confirmation word generator (good, awesome, great etc.)
--Centre text
--Make pretty border etc.
--Make a start button
+-Centre text (Pretty much there)
+-Make pretty border etc. (Border Done)
 */
 
 #include <Esplora.h>
 #include <TFT.h>
 #include <SPI.h>
+#include <stdio.h>
+
+#define HEIGHT 128 //Height of the screen
+#define WIDTH  160 //Width of the screen
 
 bool waiting = false;
-bool gameover = true;
+bool gameover = false;
 bool gameEnd = true;
+bool started = false;
 int randVal = 0;
-float Score = 0;
-float oldScore = 0;
+int Score = 0;
 int bgR = 250;
 int bgG = 16;
 int bgB = 200;
-float multiplier = 0.9;
+int multiplier = 1;
 char command[10];
 char outstr[10];
+
 void correct()
 {
   EsploraTFT.text("GOOD!", 10, 30);
   delay(1000);
   EsploraTFT.stroke(bgR, bgG, bgB);
   EsploraTFT.text("GOOD!", 10, 30);
-  multiplier += 0.1f;
-  Score += 1.0f*multiplier;
-  EsploraTFT.fill(255, 255, 255);
-  EsploraTFT.rect(45, 77, 80, 20);
-  EsploraTFT.stroke(0, 0, 0);
-  dtostrf(Score, 7, 3, outstr);
-  EsploraTFT.text(outstr, 35 , 80);
+  Score += 1*multiplier;
+  multiplier += 1;
   waiting = true;
+  EsploraTFT.stroke(255, 255, 255);
+}
+int centreX(char* text)
+{
+  int instLen = strlen(text)*12; //Length of instruction in pixels
+  int xPos = (WIDTH/2) - (instLen/2);
+  return xPos;
 }
 
 void action(char* instruction)
 {
-  EsploraTFT.text(instruction, 10 , 20);
+  int xPos = centreX(instruction);
+  EsploraTFT.text(instruction, xPos , 20);
   delay(1000);
   EsploraTFT.stroke(bgR, bgG, bgB);
-  EsploraTFT.text(instruction, 10 , 20);
+  EsploraTFT.text(instruction, xPos , 20);
   EsploraTFT.stroke(255, 255, 255);
 }
 
@@ -64,30 +71,33 @@ void textPressed(char* text, int x, int y)
   delay(50);
   EsploraTFT.stroke(bgR, bgG, bgB);
   EsploraTFT.text(text, x , y);
+  EsploraTFT.stroke(255, 255, 255);
 }
+
 void gameoverRoutine()
 {
     EsploraTFT.stroke(255, 255, 255);
-    EsploraTFT.text("AGAIN?", 35 , 30);
+    EsploraTFT.text("GAME OVER!", 25 , 60);
+    int Xpos = centreX("AGAIN?");
+    EsploraTFT.text("AGAIN?", Xpos , 30);
     if(gameEnd)
     {
       EsploraTFT.fill(255, 255, 255);
-      EsploraTFT.rect(50, 77, 80, 20);
       EsploraTFT.stroke(0, 0, 0);
       dtostrf(Score, 7, 3, outstr);
-      EsploraTFT.text(outstr, 35 , 80);
+      EsploraTFT.text(Score, 35 , 80);
       gameEnd = false;
     }
     if(Esplora.readButton(SWITCH_DOWN) == LOW)
     {
-      textPressed("AGAIN?", 35, 30);
+      textPressed("AGAIN?", Xpos, 30);
       EsploraTFT.stroke(bgR, bgG, bgB);
       EsploraTFT.text("GAME OVER!", 25 , 60);
-      EsploraTFT.stroke(0, 0, 0);
+      EsploraTFT.stroke(bgR, bgG, bgB);
       dtostrf(Score, 7, 3, outstr);
-      EsploraTFT.text(outstr, 35 , 80);
+      EsploraTFT.text(Score, 35 , 80);
       Score = 0;
-      multiplier = 0.9;
+      multiplier = 1;
       EsploraTFT.stroke(255, 255, 255);
       gameover = false;
       waiting = true;
@@ -100,7 +110,7 @@ void setup()
   EsploraTFT.fill(bgR, bgG, bgB);
   EsploraTFT.rect(5, 5, EsploraTFT.width()-10, EsploraTFT.height()-10);
   EsploraTFT.stroke(255, 255, 255);
-  EsploraTFT.setTextSize(2); //20 pixels
+  EsploraTFT.setTextSize(2); 
   //Serial.begin(9600); /*Uncomment for Debug*/
 }
 
@@ -112,9 +122,18 @@ void loop()
     waiting = false;
     switch(randVal)
     {
-      case 0 :
+      case 0 : 
       {
-        waiting = true;
+        // action("Shout");
+        // if(Esplora.readMicrophone()>100;)
+        // {
+
+        // }
+        // else
+        // {
+        //   gameover = true;
+        // }
+        waiting = true; //Above commented out so I dont lose my voice during testing
       }break;
       case 1 :
       {
@@ -125,7 +144,6 @@ void loop()
         }
         else
         {
-          EsploraTFT.text("GAME OVER!", 25 , 60);
           gameover = true;
         }
       }break;
@@ -138,7 +156,6 @@ void loop()
         }
         else
         {
-          EsploraTFT.text("GAME OVER!", 25 , 60);
           gameover = true;
         }
       }break;
@@ -151,7 +168,6 @@ void loop()
         }
         else
         {
-          EsploraTFT.text("GAME OVER!", 25 , 60);
           gameover = true;
         }
       }break;
@@ -164,7 +180,6 @@ void loop()
         }
         else
         {
-          EsploraTFT.text("GAME OVER!", 25 , 60);
           gameover = true;
         }
       }break;
@@ -177,7 +192,6 @@ void loop()
         }
         else
         {
-          EsploraTFT.text("GAME OVER!", 25 , 60);
           gameover = true;
         }
       }break;
@@ -190,59 +204,54 @@ void loop()
         }
         else
         {
-          EsploraTFT.text("GAME OVER!", 25 , 60);
           gameover = true;
         }
       }break;
       case 7 :
       {
         action("Stick Right");
-        if(Esplora.readJoystickX() < 0)
+        if(Esplora.readJoystickX() < -100)
         {
           correct();
         }
         else
         {
-          EsploraTFT.text("GAME OVER!", 25 , 60);
           gameover = true;
         }
       }break;
       case 8 :
       {
         action("Stick Left");
-        if(Esplora.readJoystickX() > 0)
+        if(Esplora.readJoystickX() > 100)
         {
           correct();
         }
         else
         {
-          EsploraTFT.text("GAME OVER!", 25 , 60);
           gameover = true;
         }
       }break;
       case 9 :
       {
         action("Stick Up");
-        if(Esplora.readJoystickY() < 0)
+        if(Esplora.readJoystickY() < -100)
         {
           correct();
         }
         else
         {
-          EsploraTFT.text("GAME OVER!", 25 , 60);
           gameover = true;
         }
       }break;
       case 10 :
       {
         action("Stick Down");
-        if(Esplora.readJoystickY() > 0)
+        if(Esplora.readJoystickY() > 100)
         {
           correct();
         }
         else
         {
-          EsploraTFT.text("GAME OVER!", 25 , 60);
           gameover = true;
         }
       }break;
@@ -253,9 +262,26 @@ void loop()
         {
           correct();
         }
-      }
+        else
+        {
+          gameover = true;
+        }
+      }break;
     }
+    
     EsploraTFT.stroke(255, 255, 255);
+  }
+  else if(!started)
+  {
+    int Xpos = centreX("START");
+    EsploraTFT.text("START", Xpos , 30);
+    if(Esplora.readButton(SWITCH_DOWN) == LOW)
+    {
+      textPressed("START", Xpos , 30);
+      started = true;
+      waiting = true;
+      return;
+    }
   }
   if(gameover)
   {
