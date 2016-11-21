@@ -6,6 +6,5 @@ of commands to execute before the time runs out.
 To Do:  
 -Display Scores, Save High score, for current session.  
 -Add a random confirmation word generator (good, awesome, great etc.)  
--Centre text  
 -Make pretty border etc.  
 -Make a start button  
